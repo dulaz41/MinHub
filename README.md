@@ -18,7 +18,7 @@ Traditionally, creating an NFT involves writing code or using complex software t
 
 ## 🟢 Solution
 
-MinHub would remove this barrier by providing an easy-to-use interface that allows users to create NFTs without any coding knowledge. This would democratize the NFT market and open it up to a wider range of creators and collectors.
+MinHub would remove this barrier by providing an easy-to-use interface that allows users to create NFTs without any coding knowledge. This would standadize the NFT market and open it up to a wider range of creators and collectors.
 
 In addition to simplifying the creation of NFTs, MinHub would also improve the overall user experience of the NFT ecosystem. By making it easier for people to create and trade NFTs, more people may be incentivized to participate in the market. This could lead to increased liquidity and more diverse offerings, which could attract even more participants.
 
