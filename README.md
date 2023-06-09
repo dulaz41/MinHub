@@ -1,4 +1,4 @@
-# MinHub - ETHDubai x SushiSwap x Mantle Hackathon
+# MinHub
 
 <br>
 
