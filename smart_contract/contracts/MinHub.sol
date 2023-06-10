@@ -13,24 +13,45 @@ contract MinHub is ERC721Enumerable, Ownable {
 
     uint256 feeAmount;
     uint256 public cost = .05 ether;
-    uint256 public maxSupply = 1000;
-    uint256 public maxMintAmount = 10;
-    uint256 public nftPerAddressLimit = 3;
+    uint256 public maxSupply;
+    uint256 public maxMintAmount;
+    uint256 public nftPerAddressLimit;
 
     bool public revealed = false;
 
     address feeToken;
     address artist;
+    mapping(address => uint256) public royalties;
 
     constructor(
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
-        string memory _initNotRevealedUri
+        string memory _initNotRevealedUri,
+        uint256 _maxSupply,
+        uint256 _maxMintAmount,
+        uint256 _nftPerAddressLimit,
+        address[] memory _creators,
+        uint256[] memory _royaltyPercentages
     ) ERC721(_name, _symbol) {
-        //_setDefaultRoyalty(msg.sender, 100);
         setBaseURI(_initBaseURI);
         setNotRevealedURI(_initNotRevealedUri);
+        maxSupply = _maxSupply;
+        maxMintAmount = _maxMintAmount;
+        nftPerAddressLimit = _nftPerAddressLimit;
+
+        require(
+            _creators.length == _royaltyPercentages.length,
+            "Mismatch between creators and royalty percentages"
+        );
+
+        for (uint256 i = 0; i < _creators.length; i++) {
+            require(
+                _royaltyPercentages[i] <= 100,
+                "Royalty percentage cannot exceed 100"
+            );
+            royalties[_creators[i]] = _royaltyPercentages[i];
+        }
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -49,7 +70,7 @@ contract MinHub is ERC721Enumerable, Ownable {
         if (msg.sender != owner()) {
             uint256 ownerTokenCount = balanceOf(msg.sender);
             require(
-                ownerTokenCount < nftPerAddressLimit,
+                ownerTokenCount + _mintAmount <= nftPerAddressLimit,
                 "max NFT per address exceeded"
             );
             require(msg.value >= cost * _mintAmount, "insufficient funds");
@@ -60,9 +81,11 @@ contract MinHub is ERC721Enumerable, Ownable {
         }
     }
 
-    function walletOfOwner(
-        address _owner
-    ) public view returns (uint256[] memory) {
+    function walletOfOwner(address _owner)
+        public
+        view
+        returns (uint256[] memory)
+    {
         uint256 ownerTokenCount = balanceOf(_owner);
         uint256[] memory tokenIds = new uint256[](ownerTokenCount);
         for (uint256 i; i < ownerTokenCount; i++) {
@@ -71,11 +94,17 @@ contract MinHub is ERC721Enumerable, Ownable {
         return tokenIds;
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         require(
             _exists(tokenId),
+
+
             "ERC721Metadata: URI query for nonexistent token"
         );
 
@@ -96,7 +125,7 @@ contract MinHub is ERC721Enumerable, Ownable {
                 : "";
     }
 
-    //Only Owner
+    // Only Owner
     function reveal() public onlyOwner {
         revealed = true;
     }
@@ -117,9 +146,10 @@ contract MinHub is ERC721Enumerable, Ownable {
         baseURI = _newBaseURI;
     }
 
-    function setBaseExtension(
-        string memory _newBaseExtension
-    ) public onlyOwner {
+    function setBaseExtension(string memory _newBaseExtension)
+        public
+        onlyOwner
+    {
         baseExtension = _newBaseExtension;
     }
 
@@ -130,6 +160,18 @@ contract MinHub is ERC721Enumerable, Ownable {
     function setTotalSupply(uint256 _maxSupply) public onlyOwner {
         maxSupply = _maxSupply;
     }
+
+    function setRoyalty(address _creator, uint256 _royaltyPercentage)
+        public
+        onlyOwner
+    {
+        require(
+            _royaltyPercentage <= 100,
+            "Royalty percentage cannot exceed 100"
+        );
+        royalties[_creator] = _royaltyPercentage;
+    }
+
 
     function withdraw() public payable onlyOwner {
         (bool success, ) = payable(msg.sender).call{
